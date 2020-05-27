@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  httpd-main:
+  httpd:
     image: httpd
     container_name: chrislane_com
     restart: unless-stopped
@@ -10,6 +10,7 @@ services:
     volumes:
       - ./config/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./public/:/usr/local/apache2/htdocs
+      - /var/log/httpd/error_log:/var/log/httpd/error_log
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.chrislane-com.entrypoints=web"
