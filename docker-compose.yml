@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+  httpd-main:
+    image: httpd
+    container_name: chrislane_com
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./data/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./public/:/usr/local/apache2/htdocs
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chrislane-com.entrypoints=web"
+      - "traefik.http.routers.chrislane-com.rule=Host(`www.chrislane.com`, `chrislane.com`)"
+      - "traefik.http.routers.chrislane-com.middlewares=secured-hsts@file, ipfs@docker"
+      - "traefik.http.routers.chrislane-com-secure.entrypoints=web-secure"
+      - "traefik.http.routers.chrislane-com-secure.rule=Host(`www.chrislane.com`, `chrislane.com`)"
+      - "traefik.http.routers.chrislane-com-secure.middlewares=secured-hsts@file, ipfs@docker"
+      - "traefik.http.routers.chrislane-com-secure.tls=true"
+      - "traefik.http.middlewares.ipfs.headers.customresponseheaders.X-Ipfs-Path=/ipns/chrislane.com/"
+      - "traefik.docker.network=proxy"
+    networks:
+      - proxy
+
+  ipfs:
+    image: ipfs/go-ipfs
+    container_name: ipfs_chrislane_com
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./data/ipfs/:/data/ipfs/
+      - ./public/:/export/
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.ipfs-chrislane-com.entrypoints=ipfs"
+      - "traefik.tcp.routers.ipfs-chrislane-com.rule=HostSNI(`*`)"
+      - "traefik.docker.network=proxy"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
