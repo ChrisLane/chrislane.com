@@ -39,8 +39,6 @@ services:
       - "traefik.tcp.routers.ipfs-chrislane-com.entrypoints=ipfs"
       - "traefik.tcp.routers.ipfs-chrislane-com.rule=HostSNI(`*`)"
       - "traefik.docker.network=proxy"
-    sysctls:
-      - net.core.rmem_max=2500000
     networks:
       - proxy
 
