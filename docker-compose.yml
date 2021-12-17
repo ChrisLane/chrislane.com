@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    networks:
+      - proxy
     volumes:
       - ./config/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./public/:/usr/local/apache2/htdocs
@@ -22,8 +24,6 @@ services:
       - "traefik.http.routers.chrislane-com-secure.tls=true"
       - "traefik.http.middlewares.ipfs.headers.customresponseheaders.X-Ipfs-Path=/ipns/chrislane.com/"
       - "traefik.docker.network=proxy"
-    networks:
-      - proxy
 
   ipfs:
     image: ipfs/go-ipfs
@@ -31,16 +31,22 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    networks:
+      - proxy
+    environment:
+      IPFS_PROFILE: "lowpower"
     volumes:
       - ./data/ipfs/:/data/ipfs/
       - ./public/:/export/
     labels:
       - "traefik.enable=true"
-      - "traefik.tcp.routers.ipfs-chrislane-com.entrypoints=ipfs"
+      - "traefik.tcp.routers.ipfs-chrislane-com.entrypoints=ipfs-tcp"
       - "traefik.tcp.routers.ipfs-chrislane-com.rule=HostSNI(`*`)"
+      - "traefik.tcp.services.ipfs-chrislane-com.loadbalancer.server.port=4001"
+      - "traefik.udp.routers.ipfs-chrislane-com.entrypoints=ipfs-udp"
+      - "traefik.udp.routers.ipfs-chrislane-com.rule=HostSNI(`*`)"
+      - "traefik.udp.services.ipfs-chrislane-com.loadbalancer.server.port=4001"
       - "traefik.docker.network=proxy"
-    networks:
-      - proxy
 
 networks:
   proxy:
