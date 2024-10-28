@@ -13,14 +13,17 @@ services:
       - /var/log/httpd/error_log:/var/log/httpd/error_log
     labels:
       - "traefik.enable=true"
+      # HTTP Router
       - "traefik.http.routers.chrislane-com.entrypoints=web"
-      - "traefik.http.routers.chrislane-com.rule=Host(`www.chrislane.com`, `chrislane.com`)"
-      - "traefik.http.routers.chrislane-com.middlewares=secured-hsts@file, ipfs@docker"
+      - "traefik.http.routers.chrislane-com.rule=Host(`www.chrislane.com`) || Host(`chrislane.com`)"
+      - "traefik.http.routers.chrislane-com.middlewares=secured-hsts@file,ipfs@docker"
+      # HTTPS Router
       - "traefik.http.routers.chrislane-com-secure.entrypoints=web-secure"
-      - "traefik.http.routers.chrislane-com-secure.rule=Host(`www.chrislane.com`, `chrislane.com`)"
-      - "traefik.http.routers.chrislane-com-secure.middlewares=secured-hsts@file, ipfs@docker"
+      - "traefik.http.routers.chrislane-com-secure.rule=Host(`www.chrislane.com`) || Host(`chrislane.com`)"
+      - "traefik.http.routers.chrislane-com-secure.middlewares=secured-hsts@file,ipfs@docker"
       - "traefik.http.routers.chrislane-com-secure.tls=true"
-      - "traefik.http.middlewares.ipfs.headers.customresponseheaders.X-Ipfs-Path=/ipns/chrislane.com/"
+      # Custom headers
+      - "traefik.http.middlewares.ipfs.headers.customResponseHeaders.X-Ipfs-Path=/ipns/chrislane.com/"
       - "traefik.docker.network=proxy"
 
   ipfs:
@@ -38,11 +41,12 @@ services:
       - ./public/:/export/
     labels:
       - "traefik.enable=true"
+      # TCP Router
       - "traefik.tcp.routers.ipfs-chrislane-com.entrypoints=ipfs-tcp"
       - "traefik.tcp.routers.ipfs-chrislane-com.rule=HostSNI(`*`)"
       - "traefik.tcp.services.ipfs-chrislane-com.loadbalancer.server.port=4001"
+      # UDP Router
       - "traefik.udp.routers.ipfs-chrislane-com.entrypoints=ipfs-udp"
-      - "traefik.udp.routers.ipfs-chrislane-com.rule=HostSNI(`*`)"
       - "traefik.udp.services.ipfs-chrislane-com.loadbalancer.server.port=4001"
       - "traefik.docker.network=proxy"
 
